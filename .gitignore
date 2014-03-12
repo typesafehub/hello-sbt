@@ -17,4 +17,4 @@ project/plugins/project/
 .idea_modules/
 
 # Activator
-activator*
+activator-*
