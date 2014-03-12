@@ -1,161 +1,459 @@
 <body>
-  <div>
-      <h2>Introduction to sbt</h2>
-      sbt is a build tool that brings convention over configuration and the flexibility of customizing
-      builds without requiring a deep understanding of the tool. Projects of simple to medium complexity
-      should be easy to configure using sbt.
+<div>
+    <h2>Introduction to sbt</h2>
 
-      <p>This tutorial will cover the following topics</p>
-      <ul>
-          <li>Why sbt</li>
-          <li>The anatomy of an sbt project</li>
-          <li>Settings</li>
-          <li>Tasks</li>
-          <li>Commands</li>
-          <li>Using Plugins</li>
-          <li>Sub-projects</li>
-      </ul>
-  </div>
-  <div>
-      <h2>Why sbt</h2>
-      There are some great build tools out there - why the need for yet another? The well
-      known tool named ANT is actually an acronym for Another Build Tool; and ANT has been
-      around for a long time now!
-      <p>
-          Maven was quite
-      revolutionary when it was introduced given its main goal on "project comprehension".
-          Other developers should be able to come to your project and rapidly comprehend
-      its structure and build behaviors given convention. Prior to Maven many build tools
-      provided a great deal of flexibility but it was often difficult to rapidly become
-      familiar with the associated project. Maven build files are expressed in XML.
-      <p>
-          Gradle is another great build tool that has a focus on project comprehension
-          but it also permits the build to be customised quite easily. The approach to
-          customisation is simpler than with Maven though and this is of great appeal. Gradle
-          build scripts are expressed in Groovy.
-      </p>
-      <p>
-          sbt has similar goals to Gradle in that project comprehension is an important
-          concern. sbt is also very flexible in permitting custom builds. sbt's build scripts
-          are expressed in Scala.
-      </p>
-      <p>
-          What distinguishes sbt is that it takes on a functional approach to expressing a build. Build scripts are
-          aggregated to form an immutable dependency graph of settings and tasks in order
-          to perform a build. Commands are used to transition one state of a build to a new
-          state. More on settings, tasks and commands later.
-      </p>
-      <p>
-          Given this functional approach a high degree of parallelism can be
-          achieved out of the box with sbt. The motivation for sbt is therefore performance
-          while also being able to leverage the learnings from build tools that came
-          before it; in particular to hold the torch of project comprehension high.
-      </p>
-  </div>
-  <div>
-      <h2>The Anatomy of an sbt project</h2>
-      To get started with sbt you don't need anything other than Scala or Java source
-      in the familiar src/main/scala or src/main/java directories. You can just type the
-      <code>sbt</code> command at the root level of that project and start compiling and
-      running code.
-      <h3>The Build File</h3>
-      <p>
-          While you can do the above it is more typical that a project has a
-          <a href="#code/build.sbt" class="shortcut">build.sbt</a> file. A common question
-          when people first see a build.sbt file is, "why the blank lines". There are
-          historical reasons for this with one being that each line is a distinct compilation
-          unit. Thus build.sbt files are incrementally compiled. Given advances in Scala
-          incremental compilation this constraint may be relaxed in the future.
-      </p>
-      <p>
-          A project typically declares its organization, name and version. While not strictly
-          necessary it is also considered good practice to declare the version of Scala to use.
-          If this is not declared then the project's Scala version will correspond to the
-          version used by sbt.
-      </p>
-      <p>
-          Our build shows that <code>scalaiformSettings</code> are to be used. This is how
-          a plugin's settings are declared. The settings are simply a sequence of keys describing
-          the default build configuration for the given plugin. The appearance of <code>scalaiformSettings</code>
-          here actually tells sbt to format Scala code in a conventional manner before
-          performing a compilation. You don't need these settings or this plugin; it is shown
-          here merely as an example of how a plugin can be referenced.
-      </p>
-      <p>
-          <code>libraryDependencies</code> is a setting that you'll find yourself assigning
-          to a great deal. These are the libraries that your project depends on. sbt has a short-hand
-          notation for expressing the coordinates of a library; typically three strings separated with a
-          <code>%</code> character. The format is:
-          <pre><code>organization + "%" [+ "%"] + name + "%" + version</code></pre>
-      The additional <code>%</code> can appear between the organization and name to indicate which
-      version of the library should be used in accordance with the version of Scala being used for the
-      project. Java libraries do not hold this convention; it is only used when referencing Scala
-      libraries in order to resolve the correct binary level compatibility.
-      </p>
-      <p>
-          Our libraryDependencies here indicate that we are to use the Specs2 test library for performing
-          the project's tests.
-      </p>
-      <p>
-          The last section is concerned with publishing and we will come back to publishing later.
-      </p>
-      <p>
-          build.sbt files can be represented instead using a Scala file in the project's
-          <a href="#code/project" class="shortcut">project</a> folder. We don't have any Scala files
-          there but be assured that the <a href="#code/build.sbt" class="shortcut">build.sbt</a> is roughly equivalent to:
-          <pre>
-            <code>
+    <p>
+        sbt is a build tool that brings convention over configuration and the flexibility of customizing
+        builds without requiring a deep understanding of the tool. Projects of simple to medium complexity
+        should be easy to configure using sbt.
+    </p>
+
+    <p>This tutorial will cover the following topics</p>
+    <ul>
+        <li>Why sbt</li>
+        <li>The CLI</li>
+        <li>The anatomy of an sbt project</li>
+        <li>Settings</li>
+        <li>Tasks</li>
+        <li>Commands</li>
+        <li>Sub-projects</li>
+        <li>Publishing</li>
+    </ul>
+</div>
+<div>
+    <h2>Why sbt</h2>
+
+    <p>
+        There are some great build tools out there - why the need for yet another? The well
+        known tool named ANT is actually an acronym for <b>Another</b> Neat Tool; and ANT has been
+        around since the year 2000!
+    </p>
+
+    <p>
+        Maven was quite
+        revolutionary when it was introduced given its main goal of "project comprehension".
+        Other developers should be able to come to your project and rapidly comprehend
+        its structure and build behaviors given convention. Prior to Maven many build tools
+        provided a great deal of flexibility but it was often difficult to rapidly become
+        familiar with the associated project.
+
+    <p>
+        Gradle is another great tool that has a focus on project comprehension
+        but it also permits the build to be customised quite easily. The approach to
+        customisation is simpler than with Maven though and this is of great appeal to
+        many developers.
+    </p>
+
+    <p>
+        sbt has similar goals to Gradle in that project comprehension is an important
+        concern. sbt is also very flexible in permitting custom builds.
+    </p>
+
+    <p>
+        What distinguishes sbt is that it takes on a functional approach to expressing a build. Build scripts are
+        aggregated to form an immutable dependency graph of settings and tasks in order
+        to perform a build. Commands are used to transition one state of a build to a new
+        state. More on settings, tasks and commands later.
+    </p>
+
+    <p>
+        Given sbt's functional approach a high degree of parallelism can be
+        achieved. The motivation for sbt is therefore performance
+        while also being able to leverage the design of build tools that came
+        before it; in particular to hold the torch of project comprehension high.
+    </p>
+</div>
+<div>
+    <h2>The Command Line Interface (CLI)</h2>
+    <p>
+        Another point of differentiation with sbt is that it is not just a tool for building your project's target.
+        sbt is also an interactive development environment in that a
+        CLI is provided where you can obtain the value of settings, evaluate tasks and perform commands.
+    </p>
+    <p>
+        sbt can be invoked via typing <code>activator</code> or <code>sbt</code>. Activator is a great
+        place to get started (you're using it now!) and its CLI allows you to jump into its UI and also
+        select templates. For now though, we'll use the sbt command to refer to invoking either
+        Activator or sbt.
+    </p>
+    <p>
+        The sbt command accepts parameters where each parameter is an sbt command e.g:
+    </p>
+    <pre>
+        <code>
+sbt compile
+        </code>
+    </pre>
+    <p>
+        The above will compile your project. If you type <code>sbt</code> without any command parameter then it will
+        launch you into an interactive session where you can assign, evaluate and perform commands.
+    </p>
+</div>
+<div>
+    <h2>The Anatomy of an sbt project</h2>
+
+    <p>
+        To get started with sbt you don't need anything other than Scala or Java source
+        in the familiar <a href="#code/src/main/scala/org/example" class="shortcut">src/main/scala</a>
+        or src/main/java directories. You can just type the
+        <code>sbt</code> command at the root level of that project and start compiling and
+        running code.
+    </p>
+
+    <h3>The Build File</h3>
+
+    <p>
+        While you can do the above it is more typical that a project has a
+        <a href="#code/build.sbt" class="shortcut">build.sbt</a> file. A common question
+        when people first see a build.sbt file is, "why the blank lines?". There are
+        historical reasons for this with one being that each line is a distinct compilation
+        unit. Thus build.sbt files are incrementally compiled. Given advances in Scala
+        incremental compilation this constraint may be relaxed in the future.
+    </p>
+
+    <p>
+        A project typically declares its organization, name and version. While not strictly
+        necessary it is also considered good practice to declare the version of Scala to use.
+        If this is not declared then the project's Scala version will correspond to the
+        version used by sbt.
+    </p>
+
+    <p>
+        Our build shows that <code>scalaiformSettings</code> are to be used. This is how
+        a plugin's settings are declared. The settings are simply a sequence of descriptors that specify
+        the default build configuration for the given plugin. The appearance of <code>scalaiformSettings</code>
+        here actually tells sbt to format Scala code in a conventional manner before
+        performing a compilation. You don't need these settings or this plugin; it is shown
+        here merely as an example of how a plugin can be referenced.
+    </p>
+
+    <p>
+        <code>libraryDependencies</code> is a setting that you'll find yourself assigning
+        to a great deal. These are the libraries that your project depends on. sbt has a short-hand
+        notation for expressing the coordinates of a library; typically three strings separated with a
+        <code>%</code> character. The format is:
+    </p>
+
+    <pre>
+        <code>
+organization + "%" [+ "%"] + name + "%" + version
+        </code>
+    </pre>
+
+    <p>
+        The additional <code>%</code> can appear between the organization and name to indicate which
+        version of the library should be used in accordance with the version of Scala being used for the
+        project. Java libraries do not hold this convention; it is only used when referencing Scala
+        libraries in order to resolve the correct binary level compatibility.
+    </p>
+
+    <p>
+        Our <code>libraryDependencies</code> here indicate that we are to use the Specs2 test library for performing
+        the project's tests.
+    </p>
+
+    <p>
+        The last section is concerned with publishing and we will come back to this later.
+    </p>
+
+    <p>
+        build.sbt files can also be represented using a Scala file in the project's
+        <a href="#code/project" class="shortcut">project</a> folder. We don't have any Scala files
+        there but be assured that the <a href="#code/build.sbt" class="shortcut">build.sbt</a> is roughly equivalent to:
+    </p>
+
+    <pre>
+        <code>
 import sbt._
 import Keys._
 
-object MyBuild extends Build
-{
-    organization := "org.example"
-    name := "hello-sbt"
-    version := "1.0.0-SNAPSHOT"
-    scalaVersion := "2.10.3"
-    scalacOptions += "-deprecation"
-    ...
+object MyBuild extends Build {
+  val helloSbt =
+    project.in(file(".")).settings(Seq(
+      organization := "org.example",
+      name := "hello-sbt",
+      version := "1.0.0-SNAPSHOT",
+      scalaVersion := "2.10.3",
+      scalacOptions += "-deprecation",
+      ...
+    ))
 }
-            </code>
-          </pre>
-      </p>
-      <h3>The Project Folder</h3>
-      <p>
-         Any <code>.sbt</code> or <code>.scala</code> files in the <a href="#code/project" class="shortcut">project</a> folder will be compiled and
-          used for the build. This powerful facility accommodates the crafting of complex tasks that can be invoked
-          as part of the build. <code>build.sbt</code> files also permit a great deal of flexibility and so are
-          typically used for the bulk of build declaration.
-      </p>
-      <p>
-          Two other files commonly found here are:
-          <ul>
-            <li>build.properties</li>
-            <li>plugins.sbt</li>
-          </ul>
-      </p>
-      <p>
-          <a href="#code/project/build.properties" class="shortcut">build.properties</a> is used primarily to
-          describe the version of sbt to be used by the project. One really nice feature of sbt is that you can use
-          other versions of sbt on your path to build a project, and the version of sbt that is required by the project
-          will always be used.
-      </p>
-      <p>
-          <a href="#code/project/plugins.sbt" class="shortcut">plugins.sbt</a> declares the plugins that will be used
-          by the project. The file is named so by convention, but you could easily use <code>scalaiform.sbt</code>
-          to declare a corresponding dependency instead. If you have many plugins then this approach may be more
-          suitable in order to reduce the length and complexity of a single <code>plugins.sbt</code> file.
-      </p>
-      <p>
-          <code>addSbtPlugin</code> is slightly different to simply adding a dependency on to the
-          <code>libraryDependencies</code> setting. Adding an sbt plugin will also seek a plugin associated with the
-          version of sbt and its corresponding Scala version.
-      </p>
-      <p>
-          The rest of the project structure may be familiar to you if you come from Maven or Gradle.
-          <code>src/main</code> and <code>src/test</code> provide source for the main and testing classpaths
-          respectively. <code>target</code> is where build artifacts are constructed.
-      </p>
-  </div>
+        </code>
+    </pre>
+
+    <h3>The Project Folder</h3>
+
+    <p>
+        Any <code>.sbt</code> or <code>.scala</code> files in the <a href="#code/project" class="shortcut">project</a>
+        folder will be compiled and
+        used for the build. This powerful facility accommodates the crafting of complex tasks that can be invoked
+        as part of the build. <code>build.sbt</code> files also permit a great deal of flexibility and so are
+        typically used for the bulk of build declaration; what we call the "shape of the build". build.sbt should
+        be able to be referenced and comprehended at a glance.
+    </p>
+
+    <p>
+        Two other files commonly found here are:
+    <ul>
+        <li>build.properties</li>
+        <li>plugins.sbt</li>
+    </ul>
+    </p>
+    <p>
+        <a href="#code/project/build.properties" class="shortcut">build.properties</a> is used primarily to
+        describe the version of sbt to be used by the project. One really nice feature of sbt is that you can launch
+        other versions of sbt to build a project, and the version of sbt that is required by the project
+        will always be used.
+    </p>
+
+    <p>
+        <a href="#code/project/plugins.sbt" class="shortcut">plugins.sbt</a> declares the plugins that will be used
+        by the project. The file is named so by convention, but you could easily use <code>scalaiform.sbt</code>
+        to declare a corresponding dependency instead. If you have many plugins then this approach may be more
+        suitable in order to reduce the length and complexity of a single <code>plugins.sbt</code> file.
+    </p>
+
+    <p>
+        <code>addSbtPlugin</code> is slightly different to simply adding a dependency on to the
+        <code>libraryDependencies</code> setting. Adding an sbt plugin will also seek a plugin associated with the
+        version of sbt and its corresponding Scala version.
+    </p>
+
+    <p>
+        The rest of the project structure may be familiar to you if you come from Maven or Gradle.
+        <code>src/main</code> and <code>src/test</code> provide source for the main and testing classpaths
+        respectively. <code>target</code> is where build artifacts such as jar files are constructed.
+    </p>
+</div>
+<div>
+    <h2>Settings</h2>
+
+    <p>
+        Settings provide your build configuration. Settings are values evaluated once and then cached for next time.
+        Here is an example of a setting being declared and then assigned:
+    </p>
+
+    <pre>
+        <code>
+val mySetting = setting[Boolean]("Some boolean setting")
+
+mySetting := true
+        </code>
+    </pre>
+
+    <p>
+        Note the <code>:=</code> assignment operator. This is a special symbol declaring that <code>true</code>
+        should be assigned to the value of the setting described by <code>mySetting</code>. The
+        <code>=</code> operator and the <code>:=</code> operator are not the same.
+    </p>
+
+    <p>
+        Settings may depend on other settings e.g.:
+    </p>
+
+    <pre>
+        <code>
+val anotherSetting = setting[String]("Some other setting")
+
+anotherSetting := mySetting.value.toString
+        </code>
+    </pre>
+
+    <p>
+        The <code>.value</code> method access not only retrieves the value associated with the setting,
+        but it also declares that <code>anotherSetting</code> has a dependency on the <code>mySetting</code>
+        setting. sbt will form a dependency graph of settings and ensure that <code>mySetting</code> is
+        assigned before <code>anotherSetting</code>.
+    </p>
+
+    <p>
+        If the setting is declared as a sequence then you can append to it:
+    </p>
+
+    <pre>
+        <code>
+scalacOptions += "-deprecated"
+
+scalacOptions ++= Seq("-deprecated", "-feature")
+        </code>
+    </pre>
+
+    <p>
+        sbt declares many standard settings
+        e.g. <a href="#code/build.sbt" class="shortcut"><code>scalacOptions</code></a>
+        so you should always look first in sbt's sbt.Keys Scala source to see if there is one you can use before
+        declaring your own.
+    </p>
+
+</div>
+<div>
+    <h2>Tasks</h2>
+    <p>
+        Tasks are similar to settings with the main difference being that they are evaluated once per build. Here is
+        an example task declaration and assignment:
+    </p>
+
+    <pre>
+        <code>
+val myTask = task[String]("some task")
+
+myTask := "Hello world"
+        </code>
+    </pre>
+
+    <p>
+        Tasks may depend on other tasks <b>and</b> settings where settings can only depend on other settings.
+        Just like settings, tasks
+        can also be appended to if they are declared as a sequence.
+    </p>
+</div>
+
+<div>
+    <h2>Commands</h2>
+    <p>
+        You generally don't end up creating your own commands (although you certainly can). Command examples:
+    </p>
+    <ul>
+        <li>compile</li>
+        <li>test</li>
+        <li>clean</li>
+        <li>update</li>
+    </ul>
+    <p>
+        Commands take the state of a previous build and produce a new state. Commands can also take parameters
+        and generally depend on tasks and settings.
+    </p>
+    <p>
+        Commands can also watch for files to change. This is done by prefixing a command with a <code>~</code>.
+        For example:
+    </p>
+    <pre>
+        <code>
+~test
+        </code>
+    </pre>
+    <p>
+        In the above, testing will occur when a file changes.
+    </p>
+</div>
+
+<div>
+    <h2>Multi-Project Builds</h2>
+    <p>
+        Multiple projects sharing the same parent hierarchy are easy to accommodate and come in two forms:
+    </p>
+    <ul>
+        <li>classpath; and</li>
+        <li>aggregate.</li>
+    </ul>
+    <p>
+        A regular sub-project structure simply requires that there is a sub-folder to the parent.
+        There is no project folder for a sub project as project build meta data is shared
+        across the parent and the sub projects. For example the parent project will declare the plugins that the
+        the sub projects will use.
+    </p>
+    <p>
+        Given a sub-project folder the parent build.sbt file will declare the following:
+    </p>
+    <pre>
+        <code>
+lazy val root = project.in(file("."))
+
+lazy val mysubproj = project.dependsOn(root)
+        </code>
+    </pre>
+
+    <p>
+        In the above, <code>mysubproj</code> is also the name of the sub-directory (this can be overridden with a
+        <code>.in</code> method call). The <code>dependsOn</code> makes the classpath of the root project
+        available to the <code>mysubproj</code> sub-project.
+    </p>
+
+    <p>
+        Declaring the <code>val</code> as a <code>lazy val</code> isn't a strict requirement above but,
+        if used, the order of declarations becomes less important. It is therefore considered good practice to use
+        lazy declarations when using the <code>project</code> function.
+    </p>
+
+    <p>
+        Aggregate projects can be declared such that commands and tasks performed on the root project will be performed on
+        the associated projects. This behavior is similar to Maven when operating on a parent pom file. To declare
+        an aggregate project:
+    </p>
+
+    <pre>
+        <code>
+lazy val root = project.in(file(".")).aggregate(mysubproj)
+
+lazy val mysubproj = project
+        </code>
+    </pre>
+
+    <p>
+        Performing a <code>compile</code> command on the root project will be performed on all of the
+        aggregated projects. Note how that this time, <code>mysubproj</code> cannot depend on the root given
+        that they'd be a circular dependency in Scala. Also aggregated projects can be built in parallel and
+        therefore cannot depend on each other.
+    </p>
+</div>
+
+<div>
+    <h2>Publishing</h2>
+    <p>
+        Toward the end of the <a href="#code/build.sbt" class="shortcut">build.sbt</a> file is a section
+        devoted to publishing.
+    </p>
+
+    <p>
+        Build artifacts can be published either in ivy or Maven form; their repository structures are
+        different. In general ivy is used for publishing plugins or private repositories and Maven is for
+        public repositories to be consumed by multiple build tools.
+    </p>
+
+    <p>
+        The <code>publishTo</code> key declares the repository that will be used for publishing
+        depending on whether the project version indicates a
+        final release or development release. When publishing you will also need to consider whether
+        credentials are required. The sbt documentation details how credentials are provided.
+    </p>
+
+    <p>
+        When publishing to Sonatype or other Maven repositories then constraints may be enforced requiring
+        the type of license being used, the name of the developer etc. <code>pomExtra</code> declares
+        the additional XML required to be included in the published artifact's metadata.
+    </p>
+
+    <p>
+        To perform a publish you can do one of the following three commands:
+    </p>
+
+    <ul>
+        <li><code>publish-local</code></li>
+        <li><code>publish</code></li>
+        <li><code>publish-signed</code></li>
+    </ul>
+
+    <p>
+        <code>publish-local</code> is used for development purposes and will publish to your local ivy
+        repository. <code>publish</code> will publish to the repository indicated by the <code>publishTo</code>
+        setting. <code>publishSigned</code> will do the same as <code>publish</code> but also sign the
+        artifact using PGP.
+    </p>
+</div>
+
+<div>
+    <h2>Summary</h2>
+
+    <p>
+        This template introduces the basics of what you need to become effective with sbt. You can get
+        most things done with the knowledge you have acquired. If you find yourself needing to
+        customize your build then please consult the sbt documentation as you will need to understand
+        the concepts introduced in greater detail.
+    </p>
+
+    <p>
+        Welcome to the world of sbt, an integrated development tool focused on build performance!
+    </p>
+</div>
 
 </body>

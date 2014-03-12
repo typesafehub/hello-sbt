@@ -54,3 +54,4 @@ pomExtra :=
         <url>http://org.example/mr-activator</url>
       </developer>
     </developers>
+
