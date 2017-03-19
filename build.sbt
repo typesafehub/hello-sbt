@@ -7,7 +7,7 @@ name := "hello-sbt"
 
 version := "1.0.0-SNAPSHOT"
 
-scalaVersion := "2.10.3"
+scalaVersion := "2.12.1"
 
 scalacOptions += "-deprecation"
 
@@ -19,7 +19,7 @@ scalariformSettings
 
 // Testing
 
-libraryDependencies += "org.specs2" %% "specs2" % "2.3.10" % "test"
+libraryDependencies += "org.specs2" %% "specs2-core" % "3.8.9" % "test"
 
 
 // Publishing
